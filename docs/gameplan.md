@@ -232,6 +232,7 @@ Record major decisions here as they are made.
 
 - **[Decided] Monorepo package manager**: npm workspaces (single root `package-lock.json`).
 - **[Decided] Test runners**: Vitest for both frontend and backend.
+- **[Decided] RLS helper functions**: use `SECURITY DEFINER` for `current_company_id`/`current_role` helpers to avoid policy recursion during RLS evaluation (`supabase/migrations/0009_security_definer_helpers.sql`).
 - **[Pending] Doc ingestion**: server-only with service role vs admin-only RLS inserts (doc suggests service role in production).
 - **[Housekeeping] Debug log filename**: workflow references `docs/ailogs.md` but repo currently has `docs/ailog.md`.
 

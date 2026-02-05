@@ -39,9 +39,14 @@ Rules (per `docs/workflow_context.md`):
 - [x] Enable RLS on all tables
 - [x] Apply RLS policies (tenant + role + ownership)
 - [ ] Document + run an RLS verification pass
-  - [ ] Cross-tenant read blocked
+  - [x] Cross-tenant read blocked (spot check: `b_admin` sees only `CompanyB` in `public.companies`)
   - [ ] Doc visibility enforced (employee vs manager vs admin)
-  - [ ] Scheduling permissions enforced (employee self vs manager/admin company)
+    - [x] Manager sees employee + manager docs (spot check)
+    - [ ] Employee sees employee docs only
+    - [ ] Admin sees employee + manager + admin docs
+  - [x] Scheduling permissions enforced (employee self vs manager/admin company)
+    - [x] Employee shift insert denied (expected)
+    - [x] Manager shift insert allowed (expected)
 
 ---
 
