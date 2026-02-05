@@ -4,7 +4,7 @@ Use this doc to record the _actual_ verification pass from `docs/rls_verificatio
 
 ## Date
 
-- YYYY-MM-DD
+- 2026-02-05
 
 ## Supabase project
 
@@ -46,10 +46,12 @@ Use this doc to record the _actual_ verification pass from `docs/rls_verificatio
 ### Scheduling permissions
 
 - [ ] A_employee sees only own shifts
-- [ ] A_employee cannot insert/update/delete shifts
+- [x] A_employee cannot insert/update/delete shifts
 - [ ] A_manager sees all CompanyA shifts
 - [ ] A_manager can insert/update/delete shifts (CompanyA)
 
 ## Notes / issues
 
--
+- Encountered RLS recursion (`ERROR 54001: stack depth limit exceeded`) when running impersonation queries that call `public.current_company_id()`/`public.current_role()` (because policies and helper functions both referenced `profiles`).
+- Fix applied by running `supabase/migrations/0009_security_definer_helpers.sql` in Supabase (helper functions now `SECURITY DEFINER`).
+- Verified denial: as `a_employee@example.com`, `insert into public.shifts (...)` fails with `ERROR 42501: new row violates row-level security policy for table "shifts"` (expected).
