@@ -48,7 +48,7 @@ Use this doc to record the _actual_ verification pass from `docs/rls_verificatio
 - [ ] A_employee sees only own shifts
 - [x] A_employee cannot insert/update/delete shifts
 - [x] A_manager sees all CompanyA shifts
-- [ ] A_manager can insert/update/delete shifts (CompanyA)
+- [x] A_manager can insert/update/delete shifts (CompanyA)
 
 ## Notes / issues
 
@@ -57,4 +57,5 @@ Use this doc to record the _actual_ verification pass from `docs/rls_verificatio
 - Verified denial: as `a_employee@example.com`, `insert into public.shifts (...)` fails with `ERROR 42501: new row violates row-level security policy for table "shifts"` (expected).
 - Verified manager visibility: as `a_manager@example.com`, `select title, visibility from public.documents` returned `doc_employee` + `doc_manager` (expected).
 - Verified manager can read shifts: as `a_manager@example.com`, `select user_id, role_label from public.shifts` returned the seeded company shift row (expected).
+- Verified manager can insert shifts: as `a_manager@example.com`, `insert into public.shifts (...) returning id` succeeded (expected).
 - Verified cross-tenant company isolation: as `b_admin@example.com`, selecting from `public.companies` returned only `CompanyB` (expected).
