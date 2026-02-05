@@ -9,24 +9,24 @@ Rules (per `docs/workflow_context.md`):
 
 ## Milestone 0 — Repo scaffold + local dev + tests baseline
 
-- [ ] Initialize git repo (`git init`) and add `.gitignore`
-- [ ] Pick workspace tool (npm workspaces vs pnpm) and document in README
-- [ ] Create `frontend/` scaffold (Vite + React + TS)
-- [ ] Add Tailwind + base styles (`globals.css`)
-- [ ] Add routing skeleton per `docs/insightful_ops_frontend.md`
-  - [ ] Public routes: `/`, `/login`, `/signup`
-  - [ ] Protected routes: `/app/assistant`, `/app/schedule`, `/app/history`
-  - [ ] Admin routes: `/app/admin/*` gated by role
-- [ ] Add frontend state foundations
-  - [ ] Auth context (Supabase auth client)
-  - [ ] TanStack Query provider
-- [ ] Create `backend/` scaffold (Node + Express + TS)
-- [ ] Implement `GET /api/health` (public)
-- [ ] Add backend test setup + a passing `/health` test
-- [ ] Add frontend test setup + a passing smoke test
-- [ ] Add lint/format/typecheck scripts (frontend + backend)
-- [ ] Add CI workflow to run lint/typecheck/tests
-- [ ] Expand `README.MD` with local run instructions + env var names (no values)
+- [x] Initialize git repo (`git init`) and add `.gitignore`
+- [x] Pick workspace tool (npm workspaces vs pnpm) and document in README
+- [x] Create `frontend/` scaffold (Vite + React + TS)
+- [x] Add Tailwind + base styles (`globals.css`)
+- [x] Add routing skeleton per `docs/insightful_ops_frontend.md`
+  - [x] Public routes: `/`, `/login`, `/signup`
+  - [x] Protected routes: `/app/assistant`, `/app/schedule`, `/app/history`
+  - [x] Admin routes: `/app/admin/*` gated by role
+- [x] Add frontend state foundations
+  - [x] Auth context (Supabase auth client)
+  - [x] TanStack Query provider
+- [x] Create `backend/` scaffold (Node + Express + TS)
+- [x] Implement `GET /api/health` (public)
+- [x] Add backend test setup + a passing `/health` test
+- [x] Add frontend test setup + a passing smoke test
+- [x] Add lint/format/typecheck scripts (frontend + backend)
+- [x] Add CI workflow to run lint/typecheck/tests
+- [x] Expand `README.MD` with local run instructions + env var names (no values)
 
 ---
 
