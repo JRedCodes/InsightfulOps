@@ -32,12 +32,12 @@ Rules (per `docs/workflow_context.md`):
 
 ## Milestone 1 — Supabase schema + RLS verified
 
-- [ ] Create Supabase project
-- [ ] Apply schema + enums + extensions
-- [ ] Apply helper functions (`current_company_id`, `current_role`, etc.)
-- [ ] Apply tables (companies, profiles, documents, chunks, conversations, messages, citations, feedback, logs, shifts)
-- [ ] Enable RLS on all tables
-- [ ] Apply RLS policies (tenant + role + ownership)
+- [x] Create Supabase project
+- [x] Apply schema + enums + extensions
+- [x] Apply helper functions (`current_company_id`, `current_role`, etc.)
+- [x] Apply tables (companies, profiles, documents, chunks, conversations, messages, citations, feedback, logs, shifts)
+- [x] Enable RLS on all tables
+- [x] Apply RLS policies (tenant + role + ownership)
 - [ ] Document + run an RLS verification pass
   - [ ] Cross-tenant read blocked
   - [ ] Doc visibility enforced (employee vs manager vs admin)
