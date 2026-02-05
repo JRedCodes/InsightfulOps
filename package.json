@@ -1,0 +1,23 @@
+{
+  "name": "insightfulops",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"npm:dev:frontend\" \"npm:dev:backend\"",
+    "dev:frontend": "npm -w frontend run dev",
+    "dev:backend": "npm -w backend run dev",
+    "build": "npm -w frontend run build && npm -w backend run build",
+    "typecheck": "npm -w frontend run typecheck && npm -w backend run typecheck",
+    "lint": "npm -w frontend run lint && npm -w backend run lint",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "test": "npm -w frontend test && npm -w backend test"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.6.2"
+  }
+}

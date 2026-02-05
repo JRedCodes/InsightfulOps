@@ -1,0 +1,136 @@
+# InsightfulOps — Rolling Checklist
+
+Rules (per `docs/workflow_context.md`):
+
+- Mark items complete **only when merged/tested** (for now, treat “complete” as “implemented + verified locally” until git/PR flow exists).
+- Keep this list aligned to `docs/gameplan.md`.
+
+---
+
+## Milestone 0 — Repo scaffold + local dev + tests baseline
+
+- [ ] Initialize git repo (`git init`) and add `.gitignore`
+- [ ] Pick workspace tool (npm workspaces vs pnpm) and document in README
+- [ ] Create `frontend/` scaffold (Vite + React + TS)
+- [ ] Add Tailwind + base styles (`globals.css`)
+- [ ] Add routing skeleton per `docs/insightful_ops_frontend.md`
+  - [ ] Public routes: `/`, `/login`, `/signup`
+  - [ ] Protected routes: `/app/assistant`, `/app/schedule`, `/app/history`
+  - [ ] Admin routes: `/app/admin/*` gated by role
+- [ ] Add frontend state foundations
+  - [ ] Auth context (Supabase auth client)
+  - [ ] TanStack Query provider
+- [ ] Create `backend/` scaffold (Node + Express + TS)
+- [ ] Implement `GET /api/health` (public)
+- [ ] Add backend test setup + a passing `/health` test
+- [ ] Add frontend test setup + a passing smoke test
+- [ ] Add lint/format/typecheck scripts (frontend + backend)
+- [ ] Add CI workflow to run lint/typecheck/tests
+- [ ] Expand `README.MD` with local run instructions + env var names (no values)
+
+---
+
+## Milestone 1 — Supabase schema + RLS verified
+
+- [ ] Create Supabase project
+- [ ] Apply schema + enums + extensions
+- [ ] Apply helper functions (`current_company_id`, `current_role`, etc.)
+- [ ] Apply tables (companies, profiles, documents, chunks, conversations, messages, citations, feedback, logs, shifts)
+- [ ] Enable RLS on all tables
+- [ ] Apply RLS policies (tenant + role + ownership)
+- [ ] Document + run an RLS verification pass
+  - [ ] Cross-tenant read blocked
+  - [ ] Doc visibility enforced (employee vs manager vs admin)
+  - [ ] Scheduling permissions enforced (employee self vs manager/admin company)
+
+---
+
+## Milestone 2 — Backend API foundation (auth + core endpoints)
+
+- [ ] Supabase JWT verification middleware
+- [ ] Request context derived server-side (`user_id`, `company_id`, `role`)
+- [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
+- [ ] `GET /api/me`
+- [ ] `POST /api/companies` (onboarding create company + set caller admin)
+- [ ] `PATCH /api/companies/settings` (admin)
+- [ ] `GET /api/users` (admin)
+- [ ] `PATCH /api/users/:id/role` (admin)
+- [ ] `DELETE /api/users/:id` (admin deactivate)
+- [ ] `GET /api/docs` (visibility-scoped)
+- [ ] `POST /api/docs` (admin upload + enqueue)
+- [ ] `POST /api/docs/:id/reindex` (admin)
+- [ ] `DELETE /api/docs/:id` (admin archive)
+- [ ] `GET /api/conversations` (self)
+- [ ] `GET /api/conversations/:id` (self)
+- [ ] Backend tests for each endpoint as it lands (minimum: happy path + one auth/role failure)
+
+---
+
+## Milestone 3 — Docs ingestion + embeddings + retrieval
+
+- [ ] Supabase Storage bucket + tenant path convention (`company_id/<document_id>/<filename>`)
+- [ ] Worker/job system wired (BullMQ + Redis)
+- [ ] Text extraction for PDF/DOCX/MD
+- [ ] Chunking (size + overlap) + unit tests
+- [ ] Embeddings generation (OpenAI) + safe retries/backoff
+- [ ] Store chunks + mark document `status` transitions (`processing` → `indexed` / `failed`)
+- [ ] Retrieval uses `match_chunks` (tenant + visibility enforced)
+- [ ] Basic observability (logs + failure reasons)
+
+---
+
+## Milestone 4 — Assistant UX + citations + history
+
+- [ ] `POST /api/assistant/chat` returns:
+  - [ ] assistant text
+  - [ ] confidence
+  - [ ] citations array
+  - [ ] flags (`no_sufficient_sources`, `needs_admin_review`)
+- [ ] Persist conversations/messages/citations to DB
+- [ ] Assistant page UI (`/app/assistant`)
+  - [ ] Message list
+  - [ ] Chat input
+  - [ ] Citation UI
+  - [ ] “No sufficient sources” UI state
+- [ ] Conversation history page (`/app/history`)
+- [ ] Feedback endpoint + UI (thumbs up/down)
+
+---
+
+## Milestone 5 — Scheduling (API + UI)
+
+- [ ] `GET /api/schedule/me` (employee self; manager/admin also ok)
+- [ ] `GET /api/schedule/team` (manager/admin only)
+- [ ] `POST /api/schedule/shifts` (manager/admin)
+- [ ] `PATCH /api/schedule/shifts/:id` (manager/admin)
+- [ ] `DELETE /api/schedule/shifts/:id` (manager/admin)
+- [ ] Schedule page UI (`/app/schedule`)
+  - [ ] Employee weekly view
+  - [ ] Manager team view
+  - [ ] Shift modal CRUD (manager/admin)
+- [ ] Tests: backend role checks + key frontend interaction(s)
+
+---
+
+## Milestone 6 — Admin console (users, docs, settings)
+
+- [ ] Admin shell + nav (`/app/admin/*`)
+- [ ] Users page (list + role change + deactivate)
+- [ ] Docs page (upload + status + reindex + archive)
+- [ ] Settings page (timezone/week start/shift min)
+- [ ] Confirm UI gating + API gating + RLS all align
+
+---
+
+## Milestone 7 — Hardening + deployability
+
+- [ ] Rate limiting (Redis) on key endpoints (assistant, docs upload)
+- [ ] Error handling + logging conventions
+- [ ] Production build + deploy plan documented
+- [ ] README finalized for “run locally” + “deploy” steps
+
+---
+
+## Housekeeping
+
+- [ ] Resolve naming mismatch: workflow references `docs/ailogs.md` but repo has `docs/ailog.md`
