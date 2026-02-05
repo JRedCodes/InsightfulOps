@@ -59,3 +59,4 @@ Seed chunks for each doc and set doc status to `indexed`.
 
 - `public.current_company_id()` and `public.current_role()` depend on `public.profiles` being populated for each auth user.
 - Document chunk visibility requires the document `status = indexed` (per retrieval/policy rules).
+- If you see `ERROR: 54001: stack depth limit exceeded` mentioning `current_company_id`, run `supabase/migrations/0009_security_definer_helpers.sql` (or apply the equivalent SQL) to avoid RLS recursion.
