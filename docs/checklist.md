@@ -52,7 +52,7 @@ Rules (per `docs/workflow_context.md`):
 - [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
 - [x] `GET /api/me`
 - [x] `POST /api/companies` (onboarding create company + set caller admin)
-- [ ] `PATCH /api/companies/settings` (admin)
+- [x] `PATCH /api/companies/settings` (admin)
 - [ ] `GET /api/users` (admin)
 - [ ] `PATCH /api/users/:id/role` (admin)
 - [ ] `DELETE /api/users/:id` (admin deactivate)

@@ -54,6 +54,17 @@ const shiftSchema = z.object({
 
 export type ShiftRow = z.infer<typeof shiftSchema>;
 
+const companySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  timezone: z.string(),
+  week_start: z.string(),
+  shift_min_minutes: z.number().int(),
+  created_at: z.string(),
+});
+
+export type CompanyRow = z.infer<typeof companySchema>;
+
 export async function fetchMyProfile({
   supabaseUrl,
   supabaseAnonKey,
@@ -88,6 +99,51 @@ export async function fetchMyProfile({
 
   const json = await res.json();
   const rows = z.array(profileSchema).parse(json);
+  return rows[0] ?? null;
+}
+
+export async function updateCompanySettings({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  companyId,
+  patch,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  companyId: string;
+  patch: Partial<{
+    timezone: string;
+    week_start: string;
+    shift_min_minutes: number;
+  }>;
+  fetchImpl?: typeof fetch;
+}): Promise<CompanyRow | null> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/companies", supabaseUrl);
+  url.searchParams.set("select", "id,name,timezone,week_start,shift_min_minutes,created_at");
+  url.searchParams.set("id", `eq.${companyId}`);
+
+  const res = await f(url.toString(), {
+    method: "PATCH",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(patch),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(companySchema).parse(json);
   return rows[0] ?? null;
 }
 
