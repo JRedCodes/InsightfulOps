@@ -71,7 +71,8 @@ Rules (per `docs/workflow_context.md`):
 
 ## Milestone 3 — Docs ingestion + embeddings + retrieval
 
-- [ ] Supabase Storage bucket + tenant path convention (`company_id/<document_id>/<filename>`)
+- [x] Supabase Storage bucket + tenant path convention (`company_id/<document_id>/<filename>`)
+  - Bucket name assumed by backend: `company-docs`
 - [ ] Worker/job system wired (BullMQ + Redis)
 - [ ] Text extraction for PDF/DOCX/MD
 - [x] Chunking (size + overlap) + unit tests
