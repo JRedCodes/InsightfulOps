@@ -57,7 +57,7 @@ Rules (per `docs/workflow_context.md`):
 - [x] `PATCH /api/users/:id/role` (admin)
 - [x] `DELETE /api/users/:id` (admin deactivate)
 - [x] `GET /api/docs` (visibility-scoped)
-- [ ] `POST /api/docs` (admin upload + enqueue)
+- [x] `POST /api/docs` (admin upload + enqueue)
 - [x] `GET /api/docs/:id` (visibility-scoped)
 - [x] `POST /api/docs/:id/reindex` (admin)
 - [x] `DELETE /api/docs/:id` (admin archive)
