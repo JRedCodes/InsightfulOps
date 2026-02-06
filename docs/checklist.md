@@ -60,8 +60,8 @@ Rules (per `docs/workflow_context.md`):
 - [ ] `POST /api/docs` (admin upload + enqueue)
 - [ ] `POST /api/docs/:id/reindex` (admin)
 - [ ] `DELETE /api/docs/:id` (admin archive)
-- [ ] `GET /api/conversations` (self)
-- [ ] `GET /api/conversations/:id` (self)
+- [x] `GET /api/conversations` (self)
+- [x] `GET /api/conversations/:id` (self)
 - [ ] Backend tests for each endpoint as it lands (minimum: happy path + one auth/role failure)
 
 ---

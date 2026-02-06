@@ -22,6 +22,26 @@ const documentSchema = z.object({
 
 export type DocumentRow = z.infer<typeof documentSchema>;
 
+const conversationSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+
+export type ConversationRow = z.infer<typeof conversationSchema>;
+
+const messageSchema = z.object({
+  id: z.string().uuid(),
+  sender: z.enum(["user", "assistant"]),
+  content: z.string(),
+  confidence: z.number().nullable().optional(),
+  no_sufficient_sources: z.boolean().optional(),
+  needs_admin_review: z.boolean().optional(),
+  created_at: z.string(),
+});
+
+export type MessageRow = z.infer<typeof messageSchema>;
+
 export async function fetchMyProfile({
   supabaseUrl,
   supabaseAnonKey,
@@ -93,4 +113,79 @@ export async function fetchVisibleDocuments({
 
   const json = await res.json();
   return z.array(documentSchema).parse(json);
+}
+
+export async function fetchConversations({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  limit = 25,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  limit?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<ConversationRow[]> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/conversations", supabaseUrl);
+  url.searchParams.set("select", "id,title,created_at");
+  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 100)));
+
+  const res = await f(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  return z.array(conversationSchema).parse(json);
+}
+
+export async function fetchConversationMessages({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  conversationId,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  conversationId: string;
+  fetchImpl?: typeof fetch;
+}): Promise<MessageRow[]> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/messages", supabaseUrl);
+  url.searchParams.set(
+    "select",
+    "id,sender,content,confidence,no_sufficient_sources,needs_admin_review,created_at"
+  );
+  url.searchParams.set("conversation_id", `eq.${conversationId}`);
+  url.searchParams.set("order", "created_at.asc");
+
+  const res = await f(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  return z.array(messageSchema).parse(json);
 }
