@@ -49,7 +49,7 @@ Rules (per `docs/workflow_context.md`):
 
 - [x] Supabase JWT verification middleware
 - [x] Request context derived server-side (`user_id`, `company_id`, `role`)
-- [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
+- [x] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
 - [x] `GET /api/me`
 - [x] `POST /api/companies` (onboarding create company + set caller admin)
 - [x] `PATCH /api/companies/settings` (admin)
@@ -65,7 +65,7 @@ Rules (per `docs/workflow_context.md`):
 - [x] `GET /api/conversations/:id` (self)
 - [x] `GET /api/schedule/me`
 - [x] `GET /api/schedule/team` (manager/admin)
-- [ ] Backend tests for each endpoint as it lands (minimum: happy path + one auth/role failure)
+- [x] Backend tests for each endpoint as it lands (minimum: happy path + one auth/role failure)
 
 ---
 
