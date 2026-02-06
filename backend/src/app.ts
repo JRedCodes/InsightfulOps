@@ -12,15 +12,18 @@ import { createMeRouter } from "./routes/me.js";
 import { createScheduleRouter } from "./routes/schedule.js";
 import { createUsersRouter } from "./routes/users.js";
 import { createAssistantRouter } from "./routes/assistant.js";
+import type { EnqueueDocIngestJob } from "./ingestion/queue.js";
 
 export function createApp({
   config,
   verifyAccessToken,
   fetchImpl,
+  enqueueDocIngestJob,
 }: {
   config?: AppConfig;
   verifyAccessToken?: VerifyAccessToken;
   fetchImpl?: typeof fetch;
+  enqueueDocIngestJob?: EnqueueDocIngestJob;
 } = {}) {
   const app = express();
   const resolvedConfig = config ?? getConfigFromEnv();
@@ -51,7 +54,7 @@ export function createApp({
     "/api/docs",
     requireAuth(resolvedVerifyAccessToken),
     requireUserContext({ ...resolvedConfig, fetchImpl }),
-    createDocsRouter({ ...resolvedConfig, fetchImpl })
+    createDocsRouter({ ...resolvedConfig, fetchImpl, enqueueDocIngestJob })
   );
   app.use(
     "/api/conversations",

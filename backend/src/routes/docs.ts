@@ -12,6 +12,10 @@ import {
   updateDocumentStatus,
 } from "../supabase/postgrest";
 import { uploadToSupabaseStorage } from "../supabase/storage";
+import {
+  createDocIngestEnqueuer,
+  type EnqueueDocIngestJob,
+} from "../ingestion/queue";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -31,14 +35,20 @@ export function createDocsRouter({
   supabaseUrl,
   supabaseAnonKey,
   supabaseServiceRoleKey,
+  redisUrl,
   fetchImpl,
+  enqueueDocIngestJob,
 }: {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
   supabaseServiceRoleKey?: string;
+  redisUrl?: string;
   fetchImpl?: typeof fetch;
+  enqueueDocIngestJob?: EnqueueDocIngestJob;
 }) {
   const router = Router();
+  const resolvedEnqueue =
+    enqueueDocIngestJob ?? createDocIngestEnqueuer({ redisUrl }).enqueue;
 
   router.get("/", async (req, res) => {
     const accessToken = req.auth?.accessToken;
@@ -145,6 +155,30 @@ export function createDocsRouter({
       },
       fetchImpl,
     });
+
+    try {
+      await resolvedEnqueue({
+        docId,
+        companyId,
+        filePath,
+        visibility,
+        uploadedByUserId: userId,
+        title,
+      });
+    } catch (e) {
+      // Best effort: if we can't enqueue, mark the doc as failed so the UI doesn't show "processing" forever.
+      await updateDocumentStatus({
+        supabaseUrl,
+        supabaseAnonKey,
+        accessToken,
+        docId,
+        status: "failed",
+        fetchImpl,
+      }).catch(() => null);
+
+      const message = e instanceof Error ? e.message : "Failed to enqueue ingestion job";
+      return res.status(500).json(err({ code: "INTERNAL", message }));
+    }
 
     return res.status(201).json(ok({ doc }));
   });
