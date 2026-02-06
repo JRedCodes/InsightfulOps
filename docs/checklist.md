@@ -74,7 +74,7 @@ Rules (per `docs/workflow_context.md`):
 - [ ] Supabase Storage bucket + tenant path convention (`company_id/<document_id>/<filename>`)
 - [ ] Worker/job system wired (BullMQ + Redis)
 - [ ] Text extraction for PDF/DOCX/MD
-- [ ] Chunking (size + overlap) + unit tests
+- [x] Chunking (size + overlap) + unit tests
 - [ ] Embeddings generation (OpenAI) + safe retries/backoff
 - [ ] Store chunks + mark document `status` transitions (`processing` → `indexed` / `failed`)
 - [ ] Retrieval uses `match_chunks` (tenant + visibility enforced)
