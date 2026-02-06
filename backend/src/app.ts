@@ -5,6 +5,7 @@ import { getConfigFromEnv, type AppConfig } from "./config.js";
 import { requireAuth, type VerifyAccessToken } from "./middleware/requireAuth.js";
 import { requireUserContext } from "./middleware/requireUserContext.js";
 import { createDocsRouter } from "./routes/docs.js";
+import { createConversationsRouter } from "./routes/conversations.js";
 import { healthRouter } from "./routes/health.js";
 import { createMeRouter } from "./routes/me.js";
 
@@ -42,6 +43,12 @@ export function createApp({
     requireAuth(resolvedVerifyAccessToken),
     requireUserContext({ ...resolvedConfig, fetchImpl }),
     createDocsRouter({ ...resolvedConfig, fetchImpl })
+  );
+  app.use(
+    "/api/conversations",
+    requireAuth(resolvedVerifyAccessToken),
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
+    createConversationsRouter({ ...resolvedConfig, fetchImpl })
   );
 
   app.use((req, res) => {
