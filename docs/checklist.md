@@ -62,6 +62,8 @@ Rules (per `docs/workflow_context.md`):
 - [ ] `DELETE /api/docs/:id` (admin archive)
 - [x] `GET /api/conversations` (self)
 - [x] `GET /api/conversations/:id` (self)
+- [x] `GET /api/schedule/me`
+- [x] `GET /api/schedule/team` (manager/admin)
 - [ ] Backend tests for each endpoint as it lands (minimum: happy path + one auth/role failure)
 
 ---
