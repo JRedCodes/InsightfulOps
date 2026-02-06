@@ -7,6 +7,7 @@ import { requireUserContext } from "./middleware/requireUserContext.js";
 import { createDocsRouter } from "./routes/docs.js";
 import { createConversationsRouter } from "./routes/conversations.js";
 import { healthRouter } from "./routes/health.js";
+import { createCompaniesRouter } from "./routes/companies.js";
 import { createMeRouter } from "./routes/me.js";
 import { createScheduleRouter } from "./routes/schedule.js";
 
@@ -33,6 +34,11 @@ export function createApp({
   app.use(express.json({ limit: "1mb" }));
 
   app.use("/api/health", healthRouter);
+  app.use(
+    "/api/companies",
+    requireAuth(resolvedVerifyAccessToken),
+    createCompaniesRouter({ ...resolvedConfig, fetchImpl })
+  );
   app.use(
     "/api/me",
     requireAuth(resolvedVerifyAccessToken),

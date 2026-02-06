@@ -51,7 +51,7 @@ Rules (per `docs/workflow_context.md`):
 - [x] Request context derived server-side (`user_id`, `company_id`, `role`)
 - [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
 - [x] `GET /api/me`
-- [ ] `POST /api/companies` (onboarding create company + set caller admin)
+- [x] `POST /api/companies` (onboarding create company + set caller admin)
 - [ ] `PATCH /api/companies/settings` (admin)
 - [ ] `GET /api/users` (admin)
 - [ ] `PATCH /api/users/:id/role` (admin)
