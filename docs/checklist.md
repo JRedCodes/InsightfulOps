@@ -47,16 +47,16 @@ Rules (per `docs/workflow_context.md`):
 
 ## Milestone 2 — Backend API foundation (auth + core endpoints)
 
-- [ ] Supabase JWT verification middleware
+- [x] Supabase JWT verification middleware
 - [ ] Request context derived server-side (`user_id`, `company_id`, `role`)
 - [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
-- [ ] `GET /api/me`
+- [x] `GET /api/me`
 - [ ] `POST /api/companies` (onboarding create company + set caller admin)
 - [ ] `PATCH /api/companies/settings` (admin)
 - [ ] `GET /api/users` (admin)
 - [ ] `PATCH /api/users/:id/role` (admin)
 - [ ] `DELETE /api/users/:id` (admin deactivate)
-- [ ] `GET /api/docs` (visibility-scoped)
+- [x] `GET /api/docs` (visibility-scoped)
 - [ ] `POST /api/docs` (admin upload + enqueue)
 - [ ] `POST /api/docs/:id/reindex` (admin)
 - [ ] `DELETE /api/docs/:id` (admin archive)
