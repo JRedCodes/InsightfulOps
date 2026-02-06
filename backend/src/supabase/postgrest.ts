@@ -149,6 +149,47 @@ export async function fetchCompanyUsers({
   return z.array(companyUserSchema).parse(json);
 }
 
+export async function updateUserRole({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  userId,
+  role,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  userId: string;
+  role: "employee" | "manager" | "admin";
+  fetchImpl?: typeof fetch;
+}): Promise<CompanyUserRow | null> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/profiles", supabaseUrl);
+  url.searchParams.set("select", "user_id,email,full_name,role,is_active,created_at");
+  url.searchParams.set("user_id", `eq.${userId}`);
+
+  const res = await f(url.toString(), {
+    method: "PATCH",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ role }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(companyUserSchema).parse(json);
+  return rows[0] ?? null;
+}
+
 export async function updateCompanySettings({
   supabaseUrl,
   supabaseAnonKey,
