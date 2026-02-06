@@ -42,6 +42,99 @@ const messageSchema = z.object({
 
 export type MessageRow = z.infer<typeof messageSchema>;
 
+export async function createConversation({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  conversation,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  conversation: {
+    company_id: string;
+    created_by: string;
+    title?: string | null;
+  };
+  fetchImpl?: typeof fetch;
+}): Promise<ConversationRow> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/conversations", supabaseUrl);
+  url.searchParams.set("select", "id,title,created_at");
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(conversation),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(conversationSchema).parse(json);
+  if (!rows[0]) throw new Error("Conversation insert returned no row");
+  return rows[0];
+}
+
+export async function createMessage({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  message,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  message: {
+    company_id: string;
+    conversation_id: string;
+    sender: "user" | "assistant";
+    content: string;
+    confidence?: number | null;
+    no_sufficient_sources?: boolean;
+    needs_admin_review?: boolean;
+  };
+  fetchImpl?: typeof fetch;
+}): Promise<MessageRow> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/messages", supabaseUrl);
+  url.searchParams.set(
+    "select",
+    "id,sender,content,confidence,no_sufficient_sources,needs_admin_review,created_at"
+  );
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(message),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(messageSchema).parse(json);
+  if (!rows[0]) throw new Error("Message insert returned no row");
+  return rows[0];
+}
+
 const shiftSchema = z.object({
   id: z.string().uuid(),
   user_id: z.string().uuid(),
