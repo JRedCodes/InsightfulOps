@@ -12,20 +12,37 @@ describe("GET /api/docs", () => {
   });
 
   it("returns docs list", async () => {
-    const fetchImpl = vi.fn().mockResolvedValueOnce(
-      new Response(
-        JSON.stringify([
-          {
-            id: "22222222-2222-2222-8222-222222222222",
-            title: "Employee Handbook",
-            visibility: "employee",
-            status: "indexed",
-            created_at: "2026-02-06T00:00:00.000Z",
-          },
-        ]),
-        { status: 200, headers: { "content-type": "application/json" } }
+    const fetchImpl = vi
+      .fn()
+      // requireUserContext -> profiles lookup
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              user_id: "00000000-0000-0000-0000-000000000000",
+              company_id: "11111111-1111-1111-8111-111111111111",
+              email: "a_employee@example.com",
+              role: "employee",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
       )
-    );
+      // /docs handler -> documents lookup
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              id: "22222222-2222-2222-8222-222222222222",
+              title: "Employee Handbook",
+              visibility: "employee",
+              status: "indexed",
+              created_at: "2026-02-06T00:00:00.000Z",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
 
     const app = createApp({
       config: {

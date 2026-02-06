@@ -3,6 +3,7 @@ import express from "express";
 import { createSupabaseJwtVerifier } from "./auth/supabaseJwt.js";
 import { getConfigFromEnv, type AppConfig } from "./config.js";
 import { requireAuth, type VerifyAccessToken } from "./middleware/requireAuth.js";
+import { requireUserContext } from "./middleware/requireUserContext.js";
 import { createDocsRouter } from "./routes/docs.js";
 import { healthRouter } from "./routes/health.js";
 import { createMeRouter } from "./routes/me.js";
@@ -33,11 +34,13 @@ export function createApp({
   app.use(
     "/api/me",
     requireAuth(resolvedVerifyAccessToken),
-    createMeRouter({ ...resolvedConfig, fetchImpl })
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
+    createMeRouter()
   );
   app.use(
     "/api/docs",
     requireAuth(resolvedVerifyAccessToken),
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
     createDocsRouter({ ...resolvedConfig, fetchImpl })
   );
 

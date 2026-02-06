@@ -48,7 +48,7 @@ Rules (per `docs/workflow_context.md`):
 ## Milestone 2 — Backend API foundation (auth + core endpoints)
 
 - [x] Supabase JWT verification middleware
-- [ ] Request context derived server-side (`user_id`, `company_id`, `role`)
+- [x] Request context derived server-side (`user_id`, `company_id`, `role`)
 - [ ] Standard response shape implemented (`{ ok, data }`, `{ ok, error }`)
 - [x] `GET /api/me`
 - [ ] `POST /api/companies` (onboarding create company + set caller admin)
