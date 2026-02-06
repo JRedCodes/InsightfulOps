@@ -497,6 +497,47 @@ export async function fetchDocumentById({
   return rows[0] ?? null;
 }
 
+export async function updateDocumentStatus({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  docId,
+  status,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  docId: string;
+  status: "processing" | "indexed" | "failed" | "archived";
+  fetchImpl?: typeof fetch;
+}): Promise<DocumentRow | null> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/documents", supabaseUrl);
+  url.searchParams.set("select", "id,title,visibility,status,created_at");
+  url.searchParams.set("id", `eq.${docId}`);
+
+  const res = await f(url.toString(), {
+    method: "PATCH",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify({ status }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(documentSchema).parse(json);
+  return rows[0] ?? null;
+}
+
 export async function fetchConversations({
   supabaseUrl,
   supabaseAnonKey,
