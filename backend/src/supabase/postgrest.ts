@@ -460,6 +460,43 @@ export async function fetchVisibleDocuments({
   return z.array(documentSchema).parse(json);
 }
 
+export async function fetchDocumentById({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  docId,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  docId: string;
+  fetchImpl?: typeof fetch;
+}): Promise<DocumentRow | null> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/documents", supabaseUrl);
+  url.searchParams.set("select", "id,title,visibility,status,created_at");
+  url.searchParams.set("id", `eq.${docId}`);
+  url.searchParams.set("limit", "1");
+
+  const res = await f(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(documentSchema).parse(json);
+  return rows[0] ?? null;
+}
+
 export async function fetchConversations({
   supabaseUrl,
   supabaseAnonKey,

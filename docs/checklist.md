@@ -58,6 +58,7 @@ Rules (per `docs/workflow_context.md`):
 - [x] `DELETE /api/users/:id` (admin deactivate)
 - [x] `GET /api/docs` (visibility-scoped)
 - [ ] `POST /api/docs` (admin upload + enqueue)
+- [x] `GET /api/docs/:id` (visibility-scoped)
 - [ ] `POST /api/docs/:id/reindex` (admin)
 - [ ] `DELETE /api/docs/:id` (admin archive)
 - [x] `GET /api/conversations` (self)
