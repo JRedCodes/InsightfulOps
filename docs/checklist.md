@@ -73,7 +73,9 @@ Rules (per `docs/workflow_context.md`):
 
 - [x] Supabase Storage bucket + tenant path convention (`company_id/<document_id>/<filename>`)
   - Bucket name assumed by backend: `company-docs`
-- [ ] Worker/job system wired (BullMQ + Redis)
+- [x] Worker/job system wired (BullMQ + Redis)
+  - `POST /api/docs` enqueues `doc_ingest` when `REDIS_URL` is configured (or via injected enqueuer in tests)
+  - Run worker: `npm -w backend run dev:worker` (requires `REDIS_URL`)
 - [ ] Text extraction for PDF/DOCX/MD
 - [x] Chunking (size + overlap) + unit tests
 - [ ] Embeddings generation (OpenAI) + safe retries/backoff

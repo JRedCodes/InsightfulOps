@@ -144,4 +144,70 @@ describe("POST /api/docs", () => {
     expect(res.body.data.doc.visibility).toBe("employee");
     expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
+
+  it("enqueues an ingestion job after creating the doc", async () => {
+    const fetchImpl = vi
+      .fn()
+      // requireUserContext -> profiles lookup (admin)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              user_id: "00000000-0000-0000-0000-000000000000",
+              company_id: "11111111-1111-1111-8111-111111111111",
+              email: "a_admin@example.com",
+              role: "admin",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      // uploadToSupabaseStorage -> POST /storage/v1/object/...
+      .mockResolvedValueOnce(new Response("", { status: 200 }))
+      // createDocument -> POST /documents
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              id: "22222222-2222-2222-8222-222222222222",
+              title: "Employee Handbook",
+              visibility: "employee",
+              status: "processing",
+              created_at: "2026-02-06T00:00:00.000Z",
+            },
+          ]),
+          { status: 201, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const enqueueDocIngestJob = vi.fn().mockResolvedValue(undefined);
+
+    const app = createApp({
+      config: {
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon",
+        supabaseServiceRoleKey: "service",
+      },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+      enqueueDocIngestJob,
+    });
+
+    const res = await request(app)
+      .post("/api/docs")
+      .set("Authorization", "Bearer fake")
+      .field("title", "Employee Handbook")
+      .field("visibility", "employee")
+      .attach("file", Buffer.from("hello"), "handbook.txt");
+
+    expect(res.status).toBe(201);
+    expect(enqueueDocIngestJob).toHaveBeenCalledTimes(1);
+    const payload = enqueueDocIngestJob.mock.calls[0]?.[0];
+    expect(payload.companyId).toBe("11111111-1111-1111-8111-111111111111");
+    expect(payload.visibility).toBe("employee");
+    expect(payload.uploadedByUserId).toBe("00000000-0000-0000-0000-000000000000");
+    expect(payload.title).toBe("Employee Handbook");
+    expect(payload.filePath).toContain("11111111-1111-1111-8111-111111111111/");
+    expect(payload.filePath).toContain("/handbook.txt");
+  });
 });
