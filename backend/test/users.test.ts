@@ -328,3 +328,198 @@ describe("PATCH /api/users/:id/role", () => {
     expect(res.body.data.user.role).toBe("manager");
   });
 });
+
+describe("DELETE /api/users/:id", () => {
+  it("returns 401 without auth header", async () => {
+    const app = createApp();
+    const res = await request(app).delete("/api/users/00000000-0000-0000-0000-000000000000");
+    expect(res.status).toBe(401);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error?.code).toBe("UNAUTHENTICATED");
+  });
+
+  it("returns 403 for non-admin", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      // requireUserContext -> profiles lookup
+      new Response(
+        JSON.stringify([
+          {
+            user_id: "00000000-0000-0000-0000-000000000000",
+            company_id: "11111111-1111-1111-8111-111111111111",
+            email: "a_employee@example.com",
+            role: "employee",
+          },
+        ]),
+        { status: 200, headers: { "content-type": "application/json" } }
+      )
+    );
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .delete("/api/users/99999999-9999-4999-8999-999999999999")
+      .set("Authorization", "Bearer fake");
+
+    expect(res.status).toBe(403);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error?.code).toBe("FORBIDDEN");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 400 for invalid user id", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      // requireUserContext -> profiles lookup (admin)
+      new Response(
+        JSON.stringify([
+          {
+            user_id: "00000000-0000-0000-0000-000000000000",
+            company_id: "11111111-1111-1111-8111-111111111111",
+            email: "a_admin@example.com",
+            role: "admin",
+          },
+        ]),
+        { status: 200, headers: { "content-type": "application/json" } }
+      )
+    );
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .delete("/api/users/not-a-uuid")
+      .set("Authorization", "Bearer fake");
+
+    expect(res.status).toBe(400);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error?.code).toBe("BAD_REQUEST");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 400 when trying to deactivate self", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(
+      // requireUserContext -> profiles lookup (admin)
+      new Response(
+        JSON.stringify([
+          {
+            user_id: "00000000-0000-0000-0000-000000000000",
+            company_id: "11111111-1111-1111-8111-111111111111",
+            email: "a_admin@example.com",
+            role: "admin",
+          },
+        ]),
+        { status: 200, headers: { "content-type": "application/json" } }
+      )
+    );
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .delete("/api/users/00000000-0000-0000-0000-000000000000")
+      .set("Authorization", "Bearer fake");
+
+    expect(res.status).toBe(400);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error?.code).toBe("BAD_REQUEST");
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns 404 when user not found", async () => {
+    const fetchImpl = vi
+      .fn()
+      // requireUserContext -> profiles lookup (admin)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              user_id: "00000000-0000-0000-0000-000000000000",
+              company_id: "11111111-1111-1111-8111-111111111111",
+              email: "a_admin@example.com",
+              role: "admin",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      // deactivateUser -> PATCH /profiles returns []
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify([]), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        })
+      );
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .delete("/api/users/99999999-9999-4999-8999-999999999999")
+      .set("Authorization", "Bearer fake");
+
+    expect(res.status).toBe(404);
+    expect(res.body.ok).toBe(false);
+    expect(res.body.error?.code).toBe("NOT_FOUND");
+  });
+
+  it("deactivates user for admin", async () => {
+    const fetchImpl = vi
+      .fn()
+      // requireUserContext -> profiles lookup (admin)
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              user_id: "00000000-0000-0000-0000-000000000000",
+              company_id: "11111111-1111-1111-8111-111111111111",
+              email: "a_admin@example.com",
+              role: "admin",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      // deactivateUser -> PATCH /profiles returns updated user
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              user_id: "99999999-9999-4999-8999-999999999999",
+              email: "a_employee@example.com",
+              full_name: "A Employee",
+              role: "employee",
+              is_active: false,
+              created_at: "2026-02-06T00:00:01.000Z",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      );
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .delete("/api/users/99999999-9999-4999-8999-999999999999")
+      .set("Authorization", "Bearer fake");
+
+    expect(res.status).toBe(200);
+    expect(res.body.ok).toBe(true);
+    expect(res.body.data.user.is_active).toBe(false);
+  });
+});
