@@ -1,4 +1,5 @@
 import type { SupabaseAuthClaims } from "../auth/supabaseJwt";
+import type { UserContext } from "../middleware/requireUserContext";
 
 declare global {
   namespace Express {
@@ -7,6 +8,7 @@ declare global {
         accessToken: string;
         claims: SupabaseAuthClaims;
       };
+      userContext?: UserContext;
     }
   }
 }
