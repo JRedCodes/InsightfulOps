@@ -65,6 +65,17 @@ const companySchema = z.object({
 
 export type CompanyRow = z.infer<typeof companySchema>;
 
+const companyUserSchema = z.object({
+  user_id: z.string().uuid(),
+  email: z.string().email().nullable().optional(),
+  full_name: z.string().nullable().optional(),
+  role: z.enum(["employee", "manager", "admin"]),
+  is_active: z.boolean().optional(),
+  created_at: z.string().optional(),
+});
+
+export type CompanyUserRow = z.infer<typeof companyUserSchema>;
+
 export async function fetchMyProfile({
   supabaseUrl,
   supabaseAnonKey,
@@ -100,6 +111,42 @@ export async function fetchMyProfile({
   const json = await res.json();
   const rows = z.array(profileSchema).parse(json);
   return rows[0] ?? null;
+}
+
+export async function fetchCompanyUsers({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  limit = 25,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  limit?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<CompanyUserRow[]> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/profiles", supabaseUrl);
+  url.searchParams.set("select", "user_id,email,full_name,role,is_active,created_at");
+  url.searchParams.set("order", "created_at.asc");
+  url.searchParams.set("limit", String(Math.min(Math.max(limit, 1), 100)));
+
+  const res = await f(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  return z.array(companyUserSchema).parse(json);
 }
 
 export async function updateCompanySettings({
