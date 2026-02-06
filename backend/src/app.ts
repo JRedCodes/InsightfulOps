@@ -11,6 +11,7 @@ import { createCompaniesRouter } from "./routes/companies.js";
 import { createMeRouter } from "./routes/me.js";
 import { createScheduleRouter } from "./routes/schedule.js";
 import { createUsersRouter } from "./routes/users.js";
+import { createAssistantRouter } from "./routes/assistant.js";
 
 export function createApp({
   config,
@@ -69,6 +70,12 @@ export function createApp({
     requireAuth(resolvedVerifyAccessToken),
     requireUserContext({ ...resolvedConfig, fetchImpl }),
     createUsersRouter({ ...resolvedConfig, fetchImpl })
+  );
+  app.use(
+    "/api/assistant",
+    requireAuth(resolvedVerifyAccessToken),
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
+    createAssistantRouter({ ...resolvedConfig, fetchImpl })
   );
 
   app.use((req, res) => {

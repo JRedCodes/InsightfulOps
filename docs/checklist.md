@@ -84,11 +84,12 @@ Rules (per `docs/workflow_context.md`):
 ## Milestone 4 — Assistant UX + citations + history
 
 - [ ] `POST /api/assistant/chat` returns:
-  - [ ] assistant text
-  - [ ] confidence
-  - [ ] citations array
-  - [ ] flags (`no_sufficient_sources`, `needs_admin_review`)
-- [ ] Persist conversations/messages/citations to DB
+  - [x] assistant text (stub)
+  - [x] confidence (stubbed as `null` for now)
+  - [x] citations array (empty for now)
+  - [x] flags (`no_sufficient_sources`, `needs_admin_review`)
+- [x] Persist conversations/messages to DB
+- [ ] Persist message citations to DB
 - [ ] Assistant page UI (`/app/assistant`)
   - [ ] Message list
   - [ ] Chat input
