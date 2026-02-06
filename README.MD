@@ -90,9 +90,10 @@ Copy `.env.example` to `.env` (never commit `.env`).
 
 - `PORT` (default `4000`)
 - `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only)
 - `OPENAI_API_KEY`
-- `REDIS_URL`
+- `REDIS_URL` (required for running the ingestion worker; optional for API in dev)
 
 ## Status
 
