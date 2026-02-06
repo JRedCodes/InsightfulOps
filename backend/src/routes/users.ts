@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { err, ok } from "../http/response";
 import { requireRole } from "../middleware/requireRole";
-import { fetchCompanyUsers, updateUserRole } from "../supabase/postgrest";
+import { deactivateUser, fetchCompanyUsers, updateUserRole } from "../supabase/postgrest";
 
 const listQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
@@ -87,6 +87,53 @@ export function createUsersRouter({
       accessToken,
       userId: parsedUserId.data,
       role: parsedBody.data.role,
+      fetchImpl,
+    });
+
+    if (!user) {
+      return res.status(404).json(err({ code: "NOT_FOUND", message: "User not found" }));
+    }
+
+    return res.json(ok({ user }));
+  });
+
+  router.delete("/:id", requireRole(["admin"]), async (req, res) => {
+    const accessToken = req.auth?.accessToken;
+    const actingUserId = req.userContext?.userId;
+    if (!accessToken || !actingUserId) {
+      return res
+        .status(500)
+        .json(err({ code: "INTERNAL", message: "User context missing on request" }));
+    }
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return res.status(500).json(
+        err({
+          code: "SERVER_MISCONFIGURED",
+          message: "Missing SUPABASE_URL or SUPABASE_ANON_KEY",
+        })
+      );
+    }
+
+    const userId = req.params.id;
+    const parsedUserId = z.string().uuid().safeParse(userId);
+    if (!parsedUserId.success) {
+      return res.status(400).json(err({ code: "BAD_REQUEST", message: "Invalid user id" }));
+    }
+
+    if (parsedUserId.data === actingUserId) {
+      return res.status(400).json(
+        err({
+          code: "BAD_REQUEST",
+          message: "Cannot deactivate self",
+        })
+      );
+    }
+
+    const user = await deactivateUser({
+      supabaseUrl,
+      supabaseAnonKey,
+      accessToken,
+      userId: parsedUserId.data,
       fetchImpl,
     });
 
