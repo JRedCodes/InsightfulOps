@@ -10,6 +10,7 @@ import { healthRouter } from "./routes/health.js";
 import { createCompaniesRouter } from "./routes/companies.js";
 import { createMeRouter } from "./routes/me.js";
 import { createScheduleRouter } from "./routes/schedule.js";
+import { createUsersRouter } from "./routes/users.js";
 
 export function createApp({
   config,
@@ -62,6 +63,12 @@ export function createApp({
     requireAuth(resolvedVerifyAccessToken),
     requireUserContext({ ...resolvedConfig, fetchImpl }),
     createScheduleRouter({ ...resolvedConfig, fetchImpl })
+  );
+  app.use(
+    "/api/users",
+    requireAuth(resolvedVerifyAccessToken),
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
+    createUsersRouter({ ...resolvedConfig, fetchImpl })
   );
 
   app.use((req, res) => {
