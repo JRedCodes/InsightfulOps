@@ -105,3 +105,108 @@ describe("GET /api/schedule/team", () => {
     expect(res.body.ok).toBe(true);
   });
 });
+
+describe("Shift CRUD", () => {
+  it("forbids employee creating shifts", async () => {
+    const fetchImpl = vi.fn().mockResolvedValueOnce(profileResponse("employee"));
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const res = await request(app)
+      .post("/api/schedule/shifts")
+      .set("Authorization", "Bearer fake")
+      .send({
+        user_id: "00000000-0000-0000-0000-000000000000",
+        starts_at: "2026-02-06T09:00:00.000Z",
+        ends_at: "2026-02-06T17:00:00.000Z",
+      });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error?.code).toBe("FORBIDDEN");
+  });
+
+  it("allows manager to create/update/delete shifts", async () => {
+    const fetchImpl = vi
+      .fn()
+      // requireUserContext -> profiles
+      .mockResolvedValueOnce(profileResponse("manager"))
+      // createShift -> POST /shifts
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              id: "66666666-6666-6666-8666-666666666666",
+              user_id: "00000000-0000-0000-0000-000000000000",
+              starts_at: "2026-02-06T09:00:00.000Z",
+              ends_at: "2026-02-06T17:00:00.000Z",
+              role_label: "Cashier",
+              notes: null,
+              created_at: "2026-02-01T00:00:00.000Z",
+            },
+          ]),
+          { status: 201, headers: { "content-type": "application/json" } }
+        )
+      )
+      // requireUserContext -> profiles (new request)
+      .mockResolvedValueOnce(profileResponse("manager"))
+      // updateShift -> PATCH /shifts
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify([
+            {
+              id: "66666666-6666-6666-8666-666666666666",
+              user_id: "00000000-0000-0000-0000-000000000000",
+              starts_at: "2026-02-06T09:00:00.000Z",
+              ends_at: "2026-02-06T17:00:00.000Z",
+              role_label: "Lead",
+              notes: null,
+              created_at: "2026-02-01T00:00:00.000Z",
+            },
+          ]),
+          { status: 200, headers: { "content-type": "application/json" } }
+        )
+      )
+      // requireUserContext -> profiles (new request)
+      .mockResolvedValueOnce(profileResponse("manager"))
+      // deleteShift -> DELETE /shifts
+      .mockResolvedValueOnce(new Response(null, { status: 204 }));
+
+    const app = createApp({
+      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
+      fetchImpl,
+    });
+
+    const createRes = await request(app)
+      .post("/api/schedule/shifts")
+      .set("Authorization", "Bearer fake")
+      .send({
+        user_id: "00000000-0000-0000-0000-000000000000",
+        starts_at: "2026-02-06T09:00:00.000Z",
+        ends_at: "2026-02-06T17:00:00.000Z",
+        role_label: "Cashier",
+      });
+
+    expect(createRes.status).toBe(201);
+    expect(createRes.body.ok).toBe(true);
+
+    const patchRes = await request(app)
+      .patch("/api/schedule/shifts/66666666-6666-6666-8666-666666666666")
+      .set("Authorization", "Bearer fake")
+      .send({ role_label: "Lead" });
+
+    expect(patchRes.status).toBe(200);
+    expect(patchRes.body.ok).toBe(true);
+
+    const delRes = await request(app)
+      .delete("/api/schedule/shifts/66666666-6666-6666-8666-666666666666")
+      .set("Authorization", "Bearer fake");
+
+    expect(delRes.status).toBe(200);
+    expect(delRes.body.ok).toBe(true);
+  });
+});

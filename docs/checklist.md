@@ -103,9 +103,9 @@ Rules (per `docs/workflow_context.md`):
 
 - [ ] `GET /api/schedule/me` (employee self; manager/admin also ok)
 - [ ] `GET /api/schedule/team` (manager/admin only)
-- [ ] `POST /api/schedule/shifts` (manager/admin)
-- [ ] `PATCH /api/schedule/shifts/:id` (manager/admin)
-- [ ] `DELETE /api/schedule/shifts/:id` (manager/admin)
+- [x] `POST /api/schedule/shifts` (manager/admin) (API)
+- [x] `PATCH /api/schedule/shifts/:id` (manager/admin) (API)
+- [x] `DELETE /api/schedule/shifts/:id` (manager/admin) (API)
 - [ ] Schedule page UI (`/app/schedule`)
   - [ ] Employee weekly view
   - [ ] Manager team view

@@ -243,3 +243,131 @@ export async function fetchShifts({
   const json = await res.json();
   return z.array(shiftSchema).parse(json);
 }
+
+export async function createShift({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  shift,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  shift: {
+    company_id: string;
+    user_id: string;
+    starts_at: string;
+    ends_at: string;
+    role_label?: string | null;
+    notes?: string | null;
+    created_by?: string | null;
+  };
+  fetchImpl?: typeof fetch;
+}): Promise<ShiftRow> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/shifts", supabaseUrl);
+  url.searchParams.set("select", "id,user_id,starts_at,ends_at,role_label,notes,created_at");
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(shift),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(shiftSchema).parse(json);
+  if (!rows[0]) throw new Error("Shift insert returned no row");
+  return rows[0];
+}
+
+export async function updateShift({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  shiftId,
+  patch,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  shiftId: string;
+  patch: Partial<{
+    user_id: string;
+    starts_at: string;
+    ends_at: string;
+    role_label: string | null;
+    notes: string | null;
+  }>;
+  fetchImpl?: typeof fetch;
+}): Promise<ShiftRow | null> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/shifts", supabaseUrl);
+  url.searchParams.set("select", "id,user_id,starts_at,ends_at,role_label,notes,created_at");
+  url.searchParams.set("id", `eq.${shiftId}`);
+
+  const res = await f(url.toString(), {
+    method: "PATCH",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(patch),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(shiftSchema).parse(json);
+  return rows[0] ?? null;
+}
+
+export async function deleteShift({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  shiftId,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  shiftId: string;
+  fetchImpl?: typeof fetch;
+}): Promise<boolean> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/shifts", supabaseUrl);
+  url.searchParams.set("id", `eq.${shiftId}`);
+
+  const res = await f(url.toString(), {
+    method: "DELETE",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      Prefer: "return=minimal",
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  return true;
+}
