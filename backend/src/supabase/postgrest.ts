@@ -460,6 +460,53 @@ export async function fetchVisibleDocuments({
   return z.array(documentSchema).parse(json);
 }
 
+export async function createDocument({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  document,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  document: {
+    id: string;
+    company_id: string;
+    title: string;
+    file_path: string;
+    visibility: "employee" | "manager" | "admin";
+    status?: "processing" | "indexed" | "failed" | "archived";
+    created_by?: string | null;
+  };
+  fetchImpl?: typeof fetch;
+}): Promise<DocumentRow> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/documents", supabaseUrl);
+  url.searchParams.set("select", "id,title,visibility,status,created_at");
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(document),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(documentSchema).parse(json);
+  if (!rows[0]) throw new Error("Document insert returned no row");
+  return rows[0];
+}
+
 export async function fetchConversations({
   supabaseUrl,
   supabaseAnonKey,
