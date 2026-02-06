@@ -42,6 +42,18 @@ const messageSchema = z.object({
 
 export type MessageRow = z.infer<typeof messageSchema>;
 
+const feedbackRatingSchema = z.enum(["up", "down"]);
+
+const assistantFeedbackSchema = z.object({
+  id: z.string().uuid(),
+  message_id: z.string().uuid(),
+  rating: feedbackRatingSchema,
+  comment: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+
+export type AssistantFeedbackRow = z.infer<typeof assistantFeedbackSchema>;
+
 export async function createConversation({
   supabaseUrl,
   supabaseAnonKey,
@@ -132,6 +144,51 @@ export async function createMessage({
   const json = await res.json();
   const rows = z.array(messageSchema).parse(json);
   if (!rows[0]) throw new Error("Message insert returned no row");
+  return rows[0];
+}
+
+export async function createAssistantFeedback({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  feedback,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  feedback: {
+    company_id: string;
+    message_id: string;
+    user_id: string;
+    rating: "up" | "down";
+    comment?: string | null;
+  };
+  fetchImpl?: typeof fetch;
+}): Promise<AssistantFeedbackRow> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/assistant_feedback", supabaseUrl);
+  url.searchParams.set("select", "id,message_id,rating,comment,created_at");
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    },
+    body: JSON.stringify(feedback),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  const rows = z.array(assistantFeedbackSchema).parse(json);
+  if (!rows[0]) throw new Error("Feedback insert returned no row");
   return rows[0];
 }
 
