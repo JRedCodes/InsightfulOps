@@ -11,6 +11,7 @@ import {
   fetchVisibleDocuments,
   updateDocumentStatus,
 } from "../supabase/postgrest";
+import { uploadToSupabaseStorage } from "../supabase/storage";
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -18,6 +19,8 @@ const upload = multer({
     fileSize: 25 * 1024 * 1024, // 25MB
   },
 });
+
+const COMPANY_DOCS_BUCKET = "company-docs";
 
 function sanitizeFilename(filename: string) {
   const base = path.basename(filename);
@@ -27,10 +30,12 @@ function sanitizeFilename(filename: string) {
 export function createDocsRouter({
   supabaseUrl,
   supabaseAnonKey,
+  supabaseServiceRoleKey,
   fetchImpl,
 }: {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
+  supabaseServiceRoleKey?: string;
   fetchImpl?: typeof fetch;
 }) {
   const router = Router();
@@ -84,6 +89,14 @@ export function createDocsRouter({
         })
       );
     }
+    if (!supabaseServiceRoleKey) {
+      return res.status(500).json(
+        err({
+          code: "SERVER_MISCONFIGURED",
+          message: "Missing SUPABASE_SERVICE_ROLE_KEY",
+        })
+      );
+    }
 
     const file = req.file;
     if (!file) {
@@ -105,7 +118,18 @@ export function createDocsRouter({
     const docId = randomUUID();
     const filePath = `${companyId}/${docId}/${sanitizeFilename(file.originalname)}`;
 
-    // MVP stub: we are not uploading to Storage or enqueueing ingestion yet.
+    // Upload raw file to Storage (service-role) using tenant-scoped path convention.
+    await uploadToSupabaseStorage({
+      supabaseUrl,
+      serviceRoleKey: supabaseServiceRoleKey,
+      bucket: COMPANY_DOCS_BUCKET,
+      objectPath: filePath,
+      contentType: file.mimetype || "application/octet-stream",
+      body: file.buffer,
+      fetchImpl,
+    });
+
+    // Ingestion enqueue is still stubbed; Milestone 3 will add worker + embeddings.
     const doc = await createDocument({
       supabaseUrl,
       supabaseAnonKey,

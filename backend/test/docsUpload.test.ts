@@ -28,7 +28,11 @@ describe("POST /api/docs", () => {
     );
 
     const app = createApp({
-      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      config: {
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon",
+        supabaseServiceRoleKey: "service",
+      },
       verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
       fetchImpl,
     });
@@ -62,7 +66,11 @@ describe("POST /api/docs", () => {
     );
 
     const app = createApp({
-      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      config: {
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon",
+        supabaseServiceRoleKey: "service",
+      },
       verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
       fetchImpl,
     });
@@ -95,6 +103,8 @@ describe("POST /api/docs", () => {
           { status: 200, headers: { "content-type": "application/json" } }
         )
       )
+      // uploadToSupabaseStorage -> POST /storage/v1/object/...
+      .mockResolvedValueOnce(new Response("", { status: 200 }))
       // createDocument -> POST /documents
       .mockResolvedValueOnce(
         new Response(
@@ -112,7 +122,11 @@ describe("POST /api/docs", () => {
       );
 
     const app = createApp({
-      config: { supabaseUrl: "https://example.supabase.co", supabaseAnonKey: "anon" },
+      config: {
+        supabaseUrl: "https://example.supabase.co",
+        supabaseAnonKey: "anon",
+        supabaseServiceRoleKey: "service",
+      },
       verifyAccessToken: async () => ({ sub: "00000000-0000-0000-0000-000000000000" }),
       fetchImpl,
     });
@@ -128,6 +142,6 @@ describe("POST /api/docs", () => {
     expect(res.body.ok).toBe(true);
     expect(res.body.data.doc.status).toBe("processing");
     expect(res.body.data.doc.visibility).toBe("employee");
-    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 });
