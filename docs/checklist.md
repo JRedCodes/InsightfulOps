@@ -59,8 +59,8 @@ Rules (per `docs/workflow_context.md`):
 - [x] `GET /api/docs` (visibility-scoped)
 - [ ] `POST /api/docs` (admin upload + enqueue)
 - [x] `GET /api/docs/:id` (visibility-scoped)
-- [ ] `POST /api/docs/:id/reindex` (admin)
-- [ ] `DELETE /api/docs/:id` (admin archive)
+- [x] `POST /api/docs/:id/reindex` (admin)
+- [x] `DELETE /api/docs/:id` (admin archive)
 - [x] `GET /api/conversations` (self)
 - [x] `GET /api/conversations/:id` (self)
 - [x] `GET /api/schedule/me`
