@@ -142,4 +142,4 @@ Rules (per `docs/workflow_context.md`):
 
 ## Housekeeping
 
-- [ ] Resolve naming mismatch: workflow references `docs/ailogs.md` but repo has `docs/ailog.md`
+- [ ] (placeholder) Add any ongoing housekeeping items here

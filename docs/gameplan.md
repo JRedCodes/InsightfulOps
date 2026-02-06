@@ -6,9 +6,17 @@ This is the working build plan for the InsightfulOps resume‑grade MVP. It is *
 
 ## Current Milestone
 
-**Milestone 0: Repo scaffold + local dev + testing baseline**
+**Milestone 3: Docs ingestion + embeddings + retrieval**
 
-Goal: turn this docs-only repo into a runnable, testable monorepo (frontend + backend) without making product-scope decisions outside the PRD.
+Goal: make docs upload → process → indexed retrieval work end-to-end (tenant + visibility enforced).
+
+**Current state snapshot**
+
+- Uploads store raw files in Supabase Storage using the tenant path convention (`company_id/<document_id>/<filename>`)
+- Uploads enqueue `doc_ingest` jobs via BullMQ when `REDIS_URL` is configured
+- Worker is running (stubbed) and queue wiring is verified end-to-end
+- Chunking utility + unit tests are implemented
+- RLS verification pass is **in progress** (see `docs/rls_verification_results.md`)
 
 ---
 
@@ -233,15 +241,14 @@ Record major decisions here as they are made.
 - **[Decided] Monorepo package manager**: npm workspaces (single root `package-lock.json`).
 - **[Decided] Test runners**: Vitest for both frontend and backend.
 - **[Pending] Doc ingestion**: server-only with service role vs admin-only RLS inserts (doc suggests service role in production).
-- **[Housekeeping] Debug log filename**: workflow references `docs/ailogs.md` but repo currently has `docs/ailog.md`.
 
 ---
 
 ## First Smallest Shippable Increment (Next Work Unit)
 
-**chore/repo-scaffold** (target: Phase 0 slice)
+**feat/ingestion-worker-extract-md** (target: Phase 3 slice)
 
-- Initialize git repo + baseline `.gitignore`
-- Create `frontend/` scaffold per frontend doc and add a basic route shell
-- Create `backend/` scaffold with `GET /api/health` + tests
-- Add minimal lint/test scripts and update README with run steps
+- In worker: download file content from Storage for `.txt`/`.md`
+- Extract text (plain/markdown)
+- Chunk + insert into `chunks` table
+- Mark document status: `processing` → `indexed` (or `failed` with a reason)
