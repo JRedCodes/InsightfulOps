@@ -97,6 +97,8 @@ Rules (per `docs/workflow_context.md`):
   - [ ] “No sufficient sources” UI state
 - [ ] Conversation history page (`/app/history`)
 - [ ] Feedback endpoint + UI (thumbs up/down)
+  - [x] Feedback endpoint (`POST /api/assistant/feedback`)
+  - [ ] Feedback UI
 
 ---
 
