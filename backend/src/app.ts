@@ -8,6 +8,7 @@ import { createDocsRouter } from "./routes/docs.js";
 import { createConversationsRouter } from "./routes/conversations.js";
 import { healthRouter } from "./routes/health.js";
 import { createMeRouter } from "./routes/me.js";
+import { createScheduleRouter } from "./routes/schedule.js";
 
 export function createApp({
   config,
@@ -49,6 +50,12 @@ export function createApp({
     requireAuth(resolvedVerifyAccessToken),
     requireUserContext({ ...resolvedConfig, fetchImpl }),
     createConversationsRouter({ ...resolvedConfig, fetchImpl })
+  );
+  app.use(
+    "/api/schedule",
+    requireAuth(resolvedVerifyAccessToken),
+    requireUserContext({ ...resolvedConfig, fetchImpl }),
+    createScheduleRouter({ ...resolvedConfig, fetchImpl })
   );
 
   app.use((req, res) => {

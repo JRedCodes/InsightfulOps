@@ -42,6 +42,18 @@ const messageSchema = z.object({
 
 export type MessageRow = z.infer<typeof messageSchema>;
 
+const shiftSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  starts_at: z.string(),
+  ends_at: z.string(),
+  role_label: z.string().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  created_at: z.string(),
+});
+
+export type ShiftRow = z.infer<typeof shiftSchema>;
+
 export async function fetchMyProfile({
   supabaseUrl,
   supabaseAnonKey,
@@ -188,4 +200,46 @@ export async function fetchConversationMessages({
 
   const json = await res.json();
   return z.array(messageSchema).parse(json);
+}
+
+export async function fetchShifts({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  startsAt,
+  endsAt,
+  userId,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  startsAt: string;
+  endsAt: string;
+  userId?: string;
+  fetchImpl?: typeof fetch;
+}): Promise<ShiftRow[]> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/shifts", supabaseUrl);
+  url.searchParams.set("select", "id,user_id,starts_at,ends_at,role_label,notes,created_at");
+  url.searchParams.set("starts_at", `gte.${startsAt}`);
+  url.searchParams.set("ends_at", `lte.${endsAt}`);
+  if (userId) url.searchParams.set("user_id", `eq.${userId}`);
+  url.searchParams.set("order", "starts_at.asc");
+
+  const res = await f(url.toString(), {
+    method: "GET",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  return z.array(shiftSchema).parse(json);
 }
