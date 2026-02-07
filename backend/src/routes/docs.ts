@@ -31,6 +31,9 @@ function sanitizeFilename(filename: string) {
   return base.replace(/[^\w.-]+/g, "_");
 }
 
+const allowedDocExts = new Set([".txt", ".md", ".markdown"]);
+const allowedDocMimes = new Set(["text/plain", "text/markdown", "text/x-markdown"]);
+
 export function createDocsRouter({
   supabaseUrl,
   supabaseAnonKey,
@@ -113,6 +116,27 @@ export function createDocsRouter({
       return res
         .status(400)
         .json(err({ code: "BAD_REQUEST", message: "Missing multipart file field: file" }));
+    }
+
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (!allowedDocExts.has(ext)) {
+      return res.status(400).json(
+        err({
+          code: "BAD_REQUEST",
+          message: `Unsupported file type. Allowed: ${Array.from(allowedDocExts).join(", ")}`,
+        })
+      );
+    }
+
+    // MIME can be spoofed; we treat it as an extra guard, not the source of truth.
+    const mime = (file.mimetype || "").toLowerCase();
+    if (mime && mime !== "application/octet-stream" && !allowedDocMimes.has(mime)) {
+      return res.status(400).json(
+        err({
+          code: "BAD_REQUEST",
+          message: `Unsupported content type: ${mime}`,
+        })
+      );
     }
 
     const visibility = req.body?.visibility;
