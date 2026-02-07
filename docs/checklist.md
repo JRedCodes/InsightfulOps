@@ -77,9 +77,10 @@ Rules (per `docs/workflow_context.md`):
   - `POST /api/docs` enqueues `doc_ingest` when `REDIS_URL` is configured (or via injected enqueuer in tests)
   - Run worker: `npm -w backend run dev:worker` (requires `REDIS_URL`)
 - [ ] Text extraction for PDF/DOCX/MD
+  - [x] TXT/Markdown extraction wired in worker (MVP)
 - [x] Chunking (size + overlap) + unit tests
 - [ ] Embeddings generation (OpenAI) + safe retries/backoff
-- [ ] Store chunks + mark document `status` transitions (`processing` → `indexed` / `failed`)
+- [x] Store chunks + mark document `status` transitions (`processing` → `indexed` / `failed`)
 - [ ] Retrieval uses `match_chunks` (tenant + visibility enforced)
 - [ ] Basic observability (logs + failure reasons)
 
