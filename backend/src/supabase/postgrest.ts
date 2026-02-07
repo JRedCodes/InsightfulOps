@@ -60,7 +60,7 @@ const matchChunkSchema = z.object({
   title: z.string(),
   visibility: docVisibilitySchema,
   content: z.string(),
-  similarity: z.number(),
+  similarity: z.number().nullable(),
 });
 
 export type MatchChunkRow = z.infer<typeof matchChunkSchema>;

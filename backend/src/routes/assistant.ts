@@ -181,21 +181,23 @@ export function createAssistantRouter({
         })
       : [];
 
-    const citations = matches.map((m) => ({
+    const rankedMatches = matches.filter((m) => typeof m.similarity === "number");
+
+    const citations = rankedMatches.map((m) => ({
       document_id: m.document_id,
       chunk_id: m.chunk_id,
       title: m.title,
-      similarity: m.similarity,
+      similarity: m.similarity ?? 0,
       excerpt: m.content.slice(0, 240),
     }));
 
     const assistantText =
-      matches.length === 0
+      rankedMatches.length === 0
         ? "I don’t have sufficient sources in your company docs to answer that."
         : await openaiAnswerWithSources({
             apiKey: openaiKey,
             question: parsed.data.message,
-            sources: matches.map((m) => ({ title: m.title, content: m.content })),
+            sources: rankedMatches.map((m) => ({ title: m.title, content: m.content })),
             fetchImpl,
           });
 
@@ -209,7 +211,7 @@ export function createAssistantRouter({
         sender: "assistant",
         content: assistantText,
         confidence: null,
-        no_sufficient_sources: matches.length === 0,
+        no_sufficient_sources: rankedMatches.length === 0,
         needs_admin_review: false,
       },
       fetchImpl,
@@ -226,7 +228,8 @@ export function createAssistantRouter({
         },
         flags: {
           needs_admin_review: assistantMessage.needs_admin_review ?? false,
-          no_sufficient_sources: assistantMessage.no_sufficient_sources ?? matches.length === 0,
+          no_sufficient_sources:
+            assistantMessage.no_sufficient_sources ?? rankedMatches.length === 0,
         },
       })
     );
