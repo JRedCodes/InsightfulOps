@@ -7,6 +7,7 @@ import {
   adminUpdateDocumentStatus,
 } from "../supabase/adminPostgrest.js";
 import type { DocIngestJobPayload } from "./queue.js";
+import { openaiEmbedTexts } from "../llm/openaiEmbeddings.js";
 
 const COMPANY_DOCS_BUCKET = "company-docs";
 
@@ -14,11 +15,13 @@ export async function ingestDocumentJob({
   payload,
   supabaseUrl,
   serviceRoleKey,
+  openaiApiKey,
   fetchImpl,
 }: {
   payload: DocIngestJobPayload;
   supabaseUrl: string;
   serviceRoleKey: string;
+  openaiApiKey: string;
   fetchImpl?: typeof fetch;
 }): Promise<{ chunkCount: number }> {
   // 1) Download file from Storage
@@ -36,7 +39,16 @@ export async function ingestDocumentJob({
   // 3) Chunk
   const chunks = chunkText({ text, maxTokens: 400, overlapTokens: 50 });
 
-  // 4) Write chunks + mark indexed (service role bypasses RLS)
+  // 4) Embed (batch) then write chunks + mark indexed (service role bypasses RLS)
+  const embeddings = await openaiEmbedTexts({
+    apiKey: openaiApiKey,
+    inputs: chunks.map((c) => c.content),
+    fetchImpl,
+  });
+  if (embeddings.length !== chunks.length) {
+    throw new Error("Embeddings count mismatch");
+  }
+
   // Idempotency: delete existing chunks for this document first.
   await adminDeleteChunksForDocument({
     supabaseUrl,
@@ -48,12 +60,13 @@ export async function ingestDocumentJob({
   await adminInsertDocumentChunks({
     supabaseUrl,
     serviceRoleKey,
-    chunks: chunks.map((c) => ({
+    chunks: chunks.map((c, i) => ({
       company_id: payload.companyId,
       document_id: payload.docId,
       chunk_index: c.index,
       content: c.content,
       token_count: c.token_count,
+      embedding: embeddings[i],
     })),
     fetchImpl,
   });

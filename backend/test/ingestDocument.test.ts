@@ -15,10 +15,26 @@ describe("ingestDocumentJob", () => {
       chunk_index: number;
       content: string;
       token_count?: number | null;
+      embedding?: number[] | null;
     };
 
     const fetchImpl = vi.fn(async (input: string | URL | Request, init?: RequestInit) => {
       const u = new URL(asUrlString(input));
+
+      // OpenAI embeddings
+      if (u.hostname === "api.openai.com" && u.pathname === "/v1/embeddings" && init?.method === "POST") {
+        const body = JSON.parse(String(init.body ?? "{}")) as { input?: string[] };
+        const inputs = body.input ?? [];
+        return new Response(
+          JSON.stringify({
+            data: inputs.map((_s, idx) => ({
+              index: idx,
+              embedding: Array.from({ length: 3 }, () => idx + 0.1), // small stub vector
+            })),
+          }),
+          { status: 200, headers: { "content-type": "application/json" } }
+        );
+      }
 
       // Storage download
       if (u.pathname.startsWith("/storage/v1/object/company-docs/") && init?.method === "GET") {
@@ -36,6 +52,8 @@ describe("ingestDocumentJob", () => {
       // Insert chunks
       if (u.pathname === "/rest/v1/document_chunks" && init?.method === "POST") {
         const body = JSON.parse(String(init.body ?? "[]")) as InsertedChunk[];
+        // Ensure embeddings were included for each chunk.
+        expect(body.every((c) => Array.isArray(c.embedding))).toBe(true);
         // Return representation skeleton
         return new Response(
           JSON.stringify(
@@ -82,6 +100,7 @@ describe("ingestDocumentJob", () => {
       },
       supabaseUrl: "https://example.supabase.co",
       serviceRoleKey: "service",
+      openaiApiKey: "sk-test",
       fetchImpl,
     });
 
@@ -110,6 +129,7 @@ describe("ingestDocumentJob", () => {
         },
         supabaseUrl: "https://example.supabase.co",
         serviceRoleKey: "service",
+        openaiApiKey: "sk-test",
         fetchImpl,
       })
     ).rejects.toThrow(/UNSUPPORTED_FILE_TYPE/);
