@@ -79,9 +79,9 @@ Rules (per `docs/workflow_context.md`):
 - [ ] Text extraction for PDF/DOCX/MD
   - [x] TXT/Markdown extraction wired in worker (MVP)
 - [x] Chunking (size + overlap) + unit tests
-- [ ] Embeddings generation (OpenAI) + safe retries/backoff
+- [x] Embeddings generation (OpenAI) + safe retries/backoff (MVP: batch embeddings)
 - [x] Store chunks + mark document `status` transitions (`processing` → `indexed` / `failed`)
-- [ ] Retrieval uses `match_chunks` (tenant + visibility enforced)
+- [x] Retrieval uses `match_chunks` (tenant + visibility enforced)
 - [ ] Basic observability (logs + failure reasons)
 
 ---

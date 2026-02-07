@@ -23,6 +23,10 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) {
   throw new Error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (required to run worker)");
 }
+const openaiApiKey = process.env.OPENAI_API_KEY;
+if (!openaiApiKey) {
+  throw new Error("Missing OPENAI_API_KEY (required to run worker)");
+}
 
 const connection = new IORedis(redisUrl, { maxRetriesPerRequest: null });
 
@@ -40,6 +44,7 @@ const worker = new Worker<DocIngestJobPayload>(
         payload: job.data,
         supabaseUrl,
         serviceRoleKey,
+        openaiApiKey,
       });
       console.log("[worker] ingest complete", {
         id: job.id,

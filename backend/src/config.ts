@@ -5,6 +5,7 @@ const envSchema = z.object({
   SUPABASE_ANON_KEY: z.string().min(1).optional(),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
   REDIS_URL: z.string().min(1).optional(),
+  OPENAI_API_KEY: z.string().min(1).optional(),
 });
 
 export type AppConfig = {
@@ -12,6 +13,7 @@ export type AppConfig = {
   supabaseAnonKey?: string;
   supabaseServiceRoleKey?: string;
   redisUrl?: string;
+  openaiApiKey?: string;
 };
 
 export function getConfigFromEnv(env: NodeJS.ProcessEnv = process.env): AppConfig {
@@ -21,5 +23,6 @@ export function getConfigFromEnv(env: NodeJS.ProcessEnv = process.env): AppConfi
     supabaseAnonKey: parsed.SUPABASE_ANON_KEY,
     supabaseServiceRoleKey: parsed.SUPABASE_SERVICE_ROLE_KEY,
     redisUrl: parsed.REDIS_URL,
+    openaiApiKey: parsed.OPENAI_API_KEY,
   };
 }

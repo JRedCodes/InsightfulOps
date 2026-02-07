@@ -227,6 +227,7 @@ export async function adminInsertDocumentChunks({
     chunk_index: number;
     content: string;
     token_count?: number | null;
+    embedding?: number[] | null;
   }>;
   fetchImpl?: typeof fetch;
 }): Promise<DocumentChunkRow[]> {

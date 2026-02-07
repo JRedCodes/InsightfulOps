@@ -54,6 +54,17 @@ const assistantFeedbackSchema = z.object({
 
 export type AssistantFeedbackRow = z.infer<typeof assistantFeedbackSchema>;
 
+const matchChunkSchema = z.object({
+  chunk_id: z.string().uuid(),
+  document_id: z.string().uuid(),
+  title: z.string(),
+  visibility: docVisibilitySchema,
+  content: z.string(),
+  similarity: z.number(),
+});
+
+export type MatchChunkRow = z.infer<typeof matchChunkSchema>;
+
 export async function createConversation({
   supabaseUrl,
   supabaseAnonKey,
@@ -190,6 +201,43 @@ export async function createAssistantFeedback({
   const rows = z.array(assistantFeedbackSchema).parse(json);
   if (!rows[0]) throw new Error("Feedback insert returned no row");
   return rows[0];
+}
+
+export async function matchChunks({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  embedding,
+  matchCount = 8,
+  fetchImpl,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  embedding: number[];
+  matchCount?: number;
+  fetchImpl?: typeof fetch;
+}): Promise<MatchChunkRow[]> {
+  const f = fetchImpl ?? fetch;
+  const url = new URL("/rest/v1/rpc/match_chunks", supabaseUrl);
+
+  const res = await f(url.toString(), {
+    method: "POST",
+    headers: {
+      apikey: supabaseAnonKey,
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ query_embedding: embedding, match_count: matchCount }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(`Supabase PostgREST rpc error ${res.status}: ${text}`);
+  }
+
+  const json = await res.json();
+  return z.array(matchChunkSchema).parse(json);
 }
 
 const shiftSchema = z.object({
