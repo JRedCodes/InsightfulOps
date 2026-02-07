@@ -5,6 +5,7 @@ AI-powered operations assistant for SMBs: **assistant-first**, **role-aware**, a
 ## Repo docs (start here)
 
 - `docs/workflow_context.md` (how we work)
+- `docs/deployment.md` (how to deploy)
 - `docs/insightful_ops_prd.md` (scope/non-goals)
 - `docs/insightful_ops_api.md` (endpoint contracts)
 - `docs/insightful_ops_db_schema_rls.md` (schema + RLS source of truth)
